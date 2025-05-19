@@ -3,6 +3,8 @@ package kpiweb.app.dev.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Entity
@@ -63,7 +65,7 @@ public class Customer {
     private String custRefreshfrq;
 
     @Column(name = "cust_refreshfrqmonth")
-    private Integer custRefreshfrqmonth;
+    private String custRefreshfrqmonth; // <--- CHANGED FROM Integer to String
 
     @Column(name = "cust_charseparator")
     private String custCharseparator;
@@ -75,7 +77,7 @@ public class Customer {
     private String custRdlinterwidlen;
 
     @Column(name = "cube_identity")
-    private Integer cubeIdentity;
+    private String cubeIdentity; // <--- CHANGED FROM Integer to String
 
     @Column(name = "cust_language")
     private String custLanguage;
@@ -158,4 +160,29 @@ public class Customer {
     @Column(name = "cust_timestamp")
     @Version
     private byte[] custTimestamp;
+
+
+
+    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    // mappedBy = "customer" refers to the 'customer' field in the Fact entity
+    // cascade = CascadeType.ALL: operations (persist, merge, remove, etc.) on Customer will cascade to associated Facts. Use with caution.
+    // orphanRemoval = true: if a Fact is removed from this collection, it will be deleted from the DB.
+    // fetch = FetchType.LAZY: Facts are not loaded until explicitly accessed.
+    private Set<Fact> facts = new HashSet<>();
+
+    public void addFact(Fact fact) {
+        facts.add(fact);
+        fact.setCustomer(this); // Assuming the second Fact entity mapping style
+        // If using the first Fact mapping style:
+        // fact.setCubeIdPkValue(this.cubeIdPk);
+        // fact.setCustomer(this);
+    }
+
+    public void removeFact(Fact fact) {
+        facts.remove(fact);
+        fact.setCustomer(null); // Assuming the second Fact entity mapping style
+        // If using the first Fact mapping style:
+        // fact.setCubeIdPkValue(null);
+        // fact.setCustomer(null);
+    }
 }
