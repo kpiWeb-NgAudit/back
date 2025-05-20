@@ -49,65 +49,65 @@ public class Customer {
     @Column(name = "cust_connect_str", nullable = false)
     private String custConnectStr;
 
-    @Column(name = "cube_lastupdate")
+    @Column(name = "cube_lastupdate" , nullable = false)
     private LocalDateTime cubeLastupdate;
 
-    @Column(name = "cube_lastprocess")
+    @Column(name = "cube_lastprocess", nullable = false)
     private LocalDateTime cubeLastprocess;
 
-    @Column(name = "cube_ftpuser")
+    @Column(name = "cube_ftpuser", nullable = false)
     private String cubeFtpuser;
 
-    @Column(name = "cube_ftppasswd")
+    @Column(name = "cube_ftppasswd", nullable = false)
     private String cubeFtppasswd;
 
-    @Column(name = "cust_refreshfrq")
+    @Column(name = "cust_refreshfrq", nullable = false)
     private String custRefreshfrq;
 
-    @Column(name = "cust_refreshfrqmonth")
+    @Column(name = "cust_refreshfrqmonth" , nullable = false)
     private String custRefreshfrqmonth; // <--- CHANGED FROM Integer to String
 
     @Column(name = "cust_charseparator")
     private String custCharseparator;
 
-    @Column(name = "cust_limitrdlfilter")
+    @Column(name = "cust_limitrdlfilter" , nullable = false)
     private Integer custLimitrdlfilter;
 
-    @Column(name = "cust_rdlinterwidlen")
+    @Column(name = "cust_rdlinterwidlen" , nullable = false)
     private String custRdlinterwidlen;
 
-    @Column(name = "cube_identity")
+    @Column(name = "cube_identity" , nullable = false)
     private String cubeIdentity; // <--- CHANGED FROM Integer to String
 
-    @Column(name = "cust_language")
+    @Column(name = "cust_language", nullable = false)
     private String custLanguage;
 
-    @Column(name = "cube_nbproddatasources")
+    @Column(name = "cube_nbproddatasources", nullable = false)
     private Integer cubeNbproddatasources;
 
     @Column(name = "cube_proddatasource_prefix")
     private String cubeProddatasourcePrefix;
 
-    @Column(name = "cust_beginmonthfiscal")
+    @Column(name = "cust_beginmonthfiscal" , nullable = false)
     private Integer custBeginmonthfiscal;
 
-    @Column(name = "cust_rdlcurrencyformat")
+    @Column(name = "cust_rdlcurrencyformat" , nullable = false)
     private String custRdlcurrencyformat;
 
-    @Column(name = "cube_dailytasktrigger")
+    @Column(name = "cube_dailytasktrigger" , nullable = false)
     private String cubeDailytasktrigger;
 
-    @Column(name = "cube_localcubgenerate")
+    @Column(name = "cube_localcubgenerate" , nullable = false)
     private String cubeLocalcubgenerate;
 
     @Column(name = "cube_optimratio")
     private String cubeOptimratio;
 
-    @Column(name = "cube_nbdimtimevcol")
-    private Integer cubeNbdimtimevcol;
+    @Column(name = "cube_nbdimtimevcol", nullable = false)
+    private Integer cubeNbdimtimevcol = 0;
 
-    @Column(name = "cube_nbdimgeovcol")
-    private Integer cubeNbdimgeovcol;
+    @Column(name = "cube_nbdimgeovcol", nullable = false)
+    private Integer cubeNbdimgeovcol = 0;
 
     @Column(name = "cust_internalnotes", columnDefinition = "TEXT")
     private String custInternalnotes;
@@ -124,31 +124,31 @@ public class Customer {
     @Column(name = "cust_contact3", length = 255)
     private String custContact3;
 
-    @Column(name = "cust_showfiscmeasureandset")
-    private Boolean custShowfiscmeasureandset;
+    @Column(name = "cust_showfiscmeasureandset" , nullable = false , length = 5)
+    private String  custShowfiscmeasureandset;
 
-    @Column(name = "cust_showpctdifferencebase100")
-    private Boolean custShowpctdifferencebase100;
+    @Column(name = "cust_showpctdifferencebase100" , nullable = false, length = 5)
+    private String  custShowpctdifferencebase100;
 
-    @Column(name = "cube_dimtimepkmanager")
+    @Column(name = "cube_dimtimepkmanager" , nullable = false)
     private String cubeDimtimepkmanager;
 
-    @Column(name = "cube_globalperspective")
+    @Column(name = "cube_globalperspective" , nullable = false)
     private String cubeGlobalperspective;
 
     @Column(name = "cube_scope_mdxinstruction", columnDefinition = "TEXT")
     private String cubeScopeMdxinstruction;
 
-    @Column(name = "cube_drillthroughnbrows")
-    private Integer cubeDrillthroughnbrows;
+    @Column(name = "cube_drillthroughnbrows", nullable = false)
+    private Integer cubeDrillthroughnbrows = 0;
 
     @Column(name = "cube_factcoldefaultmeasure")
     private String cubeFactcoldefaultmeasure;
 
-    @Column(name = "cube_distinctcountpartition")
+    @Column(name = "cube_distinctcountpartition" , nullable = false)
     private String cubeDistinctcountpartition;
 
-    @Column(name = "cube_typenormalreplica")
+    @Column(name = "cube_typenormalreplica" , nullable = false)
     private String cubeTypenormalreplica;
 
     @Column(name = "cube_paramwhenreplica")
@@ -157,9 +157,12 @@ public class Customer {
     @Column(name = "cube_comments", columnDefinition = "TEXT")
     private String cubeComments;
 
-    @Column(name = "cust_timestamp")
-    @Version
-    private byte[] custTimestamp;
+    @Version // Annotation JPA pour le versioning/verrouillage optimiste
+    @Column(name = "cust_timestamp",
+            nullable = false,       // La colonne DB ne sera jamais NULL
+            insertable = false,     // L'application ne doit PAS fournir de valeur à l'INSERT
+            updatable = false)      // L'application ne doit PAS fournir de valeur à l'UPDATE
+    private byte[] custTimestamp; // Type byte[] pour SQL Server rowversion
 
 
 
@@ -185,4 +188,6 @@ public class Customer {
         // fact.setCubeIdPkValue(null);
         // fact.setCustomer(null);
     }
+
+
 }

@@ -1,18 +1,26 @@
-package kpiweb.app.dev.controller;
+package kpiweb.app.dev.controller; // Adaptez votre package
+
+import kpiweb.app.dev.dto.FactCreateDTO;
+import kpiweb.app.dev.dto.FactResponseDTO;
+import kpiweb.app.dev.dto.FactUpdateDTO;
+import kpiweb.app.dev.entity.Fact;
+
+import kpiweb.app.dev.service.FactService;
+import kpiweb.app.dev.exception.ResourceNotFoundException;
 
 import jakarta.validation.Valid;
-import kpiweb.app.dev.entity.Fact;
-import kpiweb.app.dev.exception.ResourceNotFoundException;
-import kpiweb.app.dev.service.FactService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/facts") // Base path for all endpoints in this controller
+@RequestMapping("/api/facts")
+@CrossOrigin(origins = "http://localhost:5175")
 public class FactController {
 
     private final FactService factService;
@@ -22,48 +30,104 @@ public class FactController {
         this.factService = factService;
     }
 
-    // Create a new Fact
+    // --- Méthode de mapping Entité vers DTO
+    private FactResponseDTO convertToResponseDTO(Fact fact) {
+        if (fact == null) {
+            return null;
+        }
+        FactResponseDTO dto = new FactResponseDTO();
+        dto.setFactIdPk(fact.getFactIdPk());
+        dto.setFactTname(fact.getFactTname());
+
+        if (fact.getFactType() != null) {
+            dto.setFactType(fact.getFactType().name());
+        }
+        dto.setFactdbextrIdPk(fact.getFactdbextrIdPk());
+        dto.setFactProccube(fact.getFactProccube());
+        dto.setFactShortcubename(fact.getFactShortcubename());
+        dto.setFactShortpresname(fact.getFactShortpresname());
+        dto.setFactWorkorder(fact.getFactWorkorder());
+
+        if (fact.getCustomer() != null) {
+            dto.setCustomerCubeIdPk(fact.getCustomer().getCubeIdPk());
+        }
+
+        if (fact.getFactFactdatafiletype() != null) {
+            dto.setFactFactdatafiletype(fact.getFactFactdatafiletype().name());
+        }
+        dto.setFactFactdatafilename(fact.getFactFactdatafilename());
+        dto.setFactFactdatafilecheckunicity(fact.getFactFactdatafilecheckunicity());
+
+        if (fact.getFactZonespe() != null) {
+            dto.setFactZonespe(fact.getFactZonespe().name());
+        }
+
+        dto.setFactLastupdate(fact.getFactLastupdate());
+        dto.setFactComments(fact.getFactComments());
+
+        if (fact.getFactPartitiontype() != null) {
+            dto.setFactPartitiontype(fact.getFactPartitiontype().name());
+        }
+
+        dto.setFactTimestamp(fact.getFactTimestamp()); // byte[] sera probablement sérialisé en Base64 String
+        return dto;
+    }
+    // --- Fin de la méthode de mapping ---
+
+
+    // Créer un nouveau Fact
     // POST /api/facts
     @PostMapping
-    public ResponseEntity<Fact> createFact(@Valid @RequestBody Fact fact) {
-        Fact createdFact = factService.createFact(fact);
-        return new ResponseEntity<>(createdFact, HttpStatus.CREATED);
+    public ResponseEntity<FactResponseDTO> createFact(@Valid @RequestBody FactCreateDTO factCreateDTO) {
+        Fact createdFactEntity = factService.createFact(factCreateDTO); // Le service prend le DTO
+        FactResponseDTO responseDTO = convertToResponseDTO(createdFactEntity);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(responseDTO.getFactIdPk())
+                .toUri();
+
+        return ResponseEntity.created(location).body(responseDTO);
     }
 
-    // Get a single Fact by ID
+    // Lire un Fact par ID
     // GET /api/facts/{id}
     @GetMapping("/{id}")
-    public ResponseEntity<Fact> getFactById(@PathVariable(value = "id") Integer factId) {
-        Fact fact = factService.getFactById(factId)
+    public ResponseEntity<FactResponseDTO> getFactById(@PathVariable(value = "id") Integer factId) {
+        Fact factEntity = factService.getFactById(factId)
                 .orElseThrow(() -> new ResourceNotFoundException("Fact", "id", factId));
-        return ResponseEntity.ok().body(fact);
+        return ResponseEntity.ok(convertToResponseDTO(factEntity));
     }
 
-    // Get all Facts
+    // Lire tous les Facts
     // GET /api/facts
     @GetMapping
-    public ResponseEntity<List<Fact>> getAllFacts() {
-        List<Fact> facts = factService.getAllFacts();
-        if (facts.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<List<FactResponseDTO>> getAllFacts() {
+        List<Fact> factEntities = factService.getAllFacts();
+        if (factEntities.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(facts);
+        List<FactResponseDTO> responseDTOs = factEntities.stream()
+                .map(this::convertToResponseDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responseDTOs);
     }
 
-    // Update a Fact
+    // Mettre à jour un Fact
     // PUT /api/facts/{id}
     @PutMapping("/{id}")
-    public ResponseEntity<Fact> updateFact(@PathVariable(value = "id") Integer factId,
-                                           @Valid @RequestBody Fact factDetails) {
-        Fact updatedFact = factService.updateFact(factId, factDetails);
-        return ResponseEntity.ok(updatedFact);
+    public ResponseEntity<FactResponseDTO> updateFact(@PathVariable(value = "id") Integer factId,
+                                                      @Valid @RequestBody FactUpdateDTO factUpdateDTO) {
+        Fact updatedFactEntity = factService.updateFact(factId, factUpdateDTO); // Le service prend le DTO
+        return ResponseEntity.ok(convertToResponseDTO(updatedFactEntity));
     }
 
-    // Delete a Fact
+    // Supprimer un Fact
     // DELETE /api/facts/{id}
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFact(@PathVariable(value = "id") Integer factId) {
-        factService.deleteFact(factId); // Service method handles ResourceNotFoundException
-        return ResponseEntity.noContent().build(); // Or ResponseEntity.ok().build() if preferred
+        factService.deleteFact(factId); // Le service gère ResourceNotFoundException
+        return ResponseEntity.noContent().build();
     }
 }

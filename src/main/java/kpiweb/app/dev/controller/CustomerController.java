@@ -1,11 +1,11 @@
 package kpiweb.app.dev.controller;
 
 
-import kpiweb.app.dev.dto.CustomerDTO;
-import kpiweb.app.dev.entity.Customer;
-import kpiweb.app.dev.service.CustomerService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import kpiweb.app.dev.entity.Customer;
+import kpiweb.app.dev.exception.ResourceNotFoundException;
+import kpiweb.app.dev.service.CustomerServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,35 +14,52 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/customers")
-@RequiredArgsConstructor
 public class CustomerController {
-    private final CustomerService service;
 
-    @GetMapping
-    public List<CustomerDTO> getAll() {
-        return service.findAll();
+    private final CustomerServiceImpl customerService;
+
+    @Autowired
+    public CustomerController(CustomerServiceImpl customerService) {
+        this.customerService = customerService;
     }
 
-    @GetMapping("/{id}")
-    public CustomerDTO getOne(@PathVariable String id) {
-        return service.findById(id);
-    }
-
+    // Create
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public CustomerDTO create(@RequestBody @Valid CustomerDTO dto) {
-        return service.create(dto);
+    public ResponseEntity<Customer> createCustomer(@Valid @RequestBody Customer cust) {
+        Customer created = customerService.createCustomer(cust);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
+    // Read one
+    @GetMapping("/{id}")
+    public ResponseEntity<Customer> getCustomerById(@PathVariable("id") String cubeIdPk) {
+        Customer cust = customerService.getCustomerById(cubeIdPk)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer", "cubeIdPk", cubeIdPk));
+        return ResponseEntity.ok(cust);
+    }
+
+    // Read all
+    @GetMapping
+    public ResponseEntity<List<Customer>> getAllCustomers() {
+        List<Customer> all = customerService.getAllCustomers();
+        if (all.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return ResponseEntity.ok(all);
+    }
+
+    // Update
     @PutMapping("/{id}")
-    public CustomerDTO update(@PathVariable String id,
-                              @RequestBody @Valid CustomerDTO dto) {
-        return service.update(id, dto);
+    public ResponseEntity<Customer> updateCustomer(@PathVariable("id") String cubeIdPk,
+                                                   @Valid @RequestBody Customer details) {
+        Customer updated = customerService.updateCustomer(cubeIdPk, details);
+        return ResponseEntity.ok(updated);
     }
 
+    // Delete
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable String id) {
-        service.delete(id);
+    public ResponseEntity<Void> deleteCustomer(@PathVariable("id") String cubeIdPk) {
+        customerService.deleteCustomer(cubeIdPk);
+        return ResponseEntity.noContent().build();
     }
 }
