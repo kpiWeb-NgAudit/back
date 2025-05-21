@@ -6,7 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class FactResponseDTO { //(pour GET /api/facts et GET /api/facts/{id}, et la réponse de POST/PUT)
+public class FactResponseDTO {
     private Integer factIdPk;
     private String factTname;
 
@@ -16,7 +16,7 @@ public class FactResponseDTO { //(pour GET /api/facts et GET /api/facts/{id}, et
     private String factShortcubename;
     private String factShortpresname;
     private Integer factWorkorder;
-    private String customerCubeIdPk; // Juste l'ID du client lié
+    private String customerCubeIdPk;
 
     private String factFactdatafiletype;
     private String factFactdatafilename;
@@ -26,7 +26,7 @@ public class FactResponseDTO { //(pour GET /api/facts et GET /api/facts/{id}, et
     private LocalDateTime factLastupdate;
     private String factComments;
     private String factPartitiontype;
-    private byte[] factTimestamp; // Souvent envoyé en Base64 String par Jackson
+    private byte[] factTimestamp;
 
 
 

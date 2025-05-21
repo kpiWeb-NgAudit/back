@@ -23,14 +23,13 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
-    // Create
+
     @PostMapping
     public ResponseEntity<Customer> createCustomer(@Valid @RequestBody Customer cust) {
         Customer created = customerService.createCustomer(cust);
         return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
-    // Read one
     @GetMapping("/{id}")
     public ResponseEntity<Customer> getCustomerById(@PathVariable("id") String cubeIdPk) {
         Customer cust = customerService.getCustomerById(cubeIdPk)
@@ -38,7 +37,7 @@ public class CustomerController {
         return ResponseEntity.ok(cust);
     }
 
-    // Read all
+
     @GetMapping
     public ResponseEntity<List<Customer>> getAllCustomers() {
         List<Customer> all = customerService.getAllCustomers();
@@ -48,7 +47,7 @@ public class CustomerController {
         return ResponseEntity.ok(all);
     }
 
-    // Update
+
     @PutMapping("/{id}")
     public ResponseEntity<Customer> updateCustomer(@PathVariable("id") String cubeIdPk,
                                                    @Valid @RequestBody Customer details) {
@@ -56,7 +55,7 @@ public class CustomerController {
         return ResponseEntity.ok(updated);
     }
 
-    // Delete
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCustomer(@PathVariable("id") String cubeIdPk) {
         customerService.deleteCustomer(cubeIdPk);

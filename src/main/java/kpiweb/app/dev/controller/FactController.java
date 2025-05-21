@@ -1,6 +1,7 @@
-package kpiweb.app.dev.controller; // Adaptez votre package
+package kpiweb.app.dev.controller;
 
 import kpiweb.app.dev.dto.FactCreateDTO;
+import kpiweb.app.dev.dto.FactPasteCreateDTO;
 import kpiweb.app.dev.dto.FactResponseDTO;
 import kpiweb.app.dev.dto.FactUpdateDTO;
 import kpiweb.app.dev.entity.Fact;
@@ -30,7 +31,6 @@ public class FactController {
         this.factService = factService;
     }
 
-    // --- Méthode de mapping Entité vers DTO
     private FactResponseDTO convertToResponseDTO(Fact fact) {
         if (fact == null) {
             return null;
@@ -69,17 +69,14 @@ public class FactController {
             dto.setFactPartitiontype(fact.getFactPartitiontype().name());
         }
 
-        dto.setFactTimestamp(fact.getFactTimestamp()); // byte[] sera probablement sérialisé en Base64 String
+        dto.setFactTimestamp(fact.getFactTimestamp());
         return dto;
     }
-    // --- Fin de la méthode de mapping ---
 
 
-    // Créer un nouveau Fact
-    // POST /api/facts
     @PostMapping
     public ResponseEntity<FactResponseDTO> createFact(@Valid @RequestBody FactCreateDTO factCreateDTO) {
-        Fact createdFactEntity = factService.createFact(factCreateDTO); // Le service prend le DTO
+        Fact createdFactEntity = factService.createFact(factCreateDTO);
         FactResponseDTO responseDTO = convertToResponseDTO(createdFactEntity);
 
         URI location = ServletUriComponentsBuilder
@@ -91,8 +88,7 @@ public class FactController {
         return ResponseEntity.created(location).body(responseDTO);
     }
 
-    // Lire un Fact par ID
-    // GET /api/facts/{id}
+
     @GetMapping("/{id}")
     public ResponseEntity<FactResponseDTO> getFactById(@PathVariable(value = "id") Integer factId) {
         Fact factEntity = factService.getFactById(factId)
@@ -100,8 +96,7 @@ public class FactController {
         return ResponseEntity.ok(convertToResponseDTO(factEntity));
     }
 
-    // Lire tous les Facts
-    // GET /api/facts
+
     @GetMapping
     public ResponseEntity<List<FactResponseDTO>> getAllFacts() {
         List<Fact> factEntities = factService.getAllFacts();
@@ -114,20 +109,31 @@ public class FactController {
         return ResponseEntity.ok(responseDTOs);
     }
 
-    // Mettre à jour un Fact
-    // PUT /api/facts/{id}
     @PutMapping("/{id}")
     public ResponseEntity<FactResponseDTO> updateFact(@PathVariable(value = "id") Integer factId,
                                                       @Valid @RequestBody FactUpdateDTO factUpdateDTO) {
-        Fact updatedFactEntity = factService.updateFact(factId, factUpdateDTO); // Le service prend le DTO
+        Fact updatedFactEntity = factService.updateFact(factId, factUpdateDTO);
         return ResponseEntity.ok(convertToResponseDTO(updatedFactEntity));
     }
 
-    // Supprimer un Fact
-    // DELETE /api/facts/{id}
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFact(@PathVariable(value = "id") Integer factId) {
-        factService.deleteFact(factId); // Le service gère ResourceNotFoundException
+        factService.deleteFact(factId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/paste-create")
+    public ResponseEntity<FactResponseDTO> createFactFromPaste(@Valid @RequestBody FactPasteCreateDTO factPasteCreateDTO) {
+        Fact createdFactEntity = factService.createFactFromPaste(factPasteCreateDTO);
+        FactResponseDTO responseDTO = convertToResponseDTO(createdFactEntity);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentContextPath().path("/api/facts/{id}")
+                .buildAndExpand(responseDTO.getFactIdPk())
+                .toUri();
+
+        return ResponseEntity.created(location).body(responseDTO);
+    }
+
 }

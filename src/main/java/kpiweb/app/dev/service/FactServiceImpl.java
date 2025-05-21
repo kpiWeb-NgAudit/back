@@ -1,6 +1,7 @@
 package kpiweb.app.dev.service;
 
 import kpiweb.app.dev.dto.FactCreateDTO;
+import kpiweb.app.dev.dto.FactPasteCreateDTO;
 import kpiweb.app.dev.dto.FactUpdateDTO;
 import kpiweb.app.dev.entity.*;
 import kpiweb.app.dev.exception.ResourceNotFoundException;
@@ -19,7 +20,7 @@ public class FactServiceImpl implements FactService {
 
     private final FactRepository factRepository;
     private final CustomerRepository customerRepository;
-    // private final FactMapper factMapper;
+
 
     @Autowired
     public FactServiceImpl(FactRepository factRepository, CustomerRepository customerRepository /*, FactMapper factMapper */) {
@@ -28,7 +29,7 @@ public class FactServiceImpl implements FactService {
         // this.factMapper = factMapper;
     }
 
-    // Méthode createFact modifiée pour prendre un DTO
+
     @Transactional
     public Fact createFact(FactCreateDTO dto) {
         Fact fact = new Fact();
@@ -63,6 +64,60 @@ public class FactServiceImpl implements FactService {
         return factRepository.save(fact);
     }
 
+    @Transactional
+    public Fact createFactFromPaste(FactPasteCreateDTO pasteDto) {
+        Fact fact = new Fact();
+
+
+        Customer managedCustomer = customerRepository.findById(pasteDto.getCustomerCubeIdPk())
+                .orElseThrow(() -> new ResourceNotFoundException("Customer", "cubeIdPk", pasteDto.getCustomerCubeIdPk()));
+        fact.setCustomer(managedCustomer);
+
+
+        fact.setFactTname(pasteDto.getFactTname());
+
+
+        String baseScnName = pasteDto.getFactTname().length() > 10 ? pasteDto.getFactTname().substring(0, 10) : pasteDto.getFactTname();
+        String generatedShortCubeName = (baseScnName + "_SCN").toUpperCase();
+        if (generatedShortCubeName.length() > 20) {
+            generatedShortCubeName = generatedShortCubeName.substring(0, 20);
+        }
+        // TODO: Add robust collision check/handling for generatedShortCubeName if needed
+
+        fact.setFactShortcubename(generatedShortCubeName);
+
+
+        String baseSpnName = pasteDto.getFactTname().length() > 15 ? pasteDto.getFactTname().substring(0, 15) : pasteDto.getFactTname();
+        String generatedShortPresName = (baseSpnName + "_SPN").toUpperCase();
+        if (generatedShortPresName.length() > 30) {
+            generatedShortPresName = generatedShortPresName.substring(0, 30);
+        }
+        // TODO: Collision check/handling
+        fact.setFactShortpresname(generatedShortPresName);
+
+
+        Integer maxWorkOrder = factRepository.findMaxFactWorkorderForCustomer(managedCustomer.getCubeIdPk());
+        fact.setFactWorkorder((maxWorkOrder != null && maxWorkOrder >= 0) ? maxWorkOrder + 1 : 0);
+
+
+        fact.setFactType(pasteDto.getFactType());
+        fact.setFactProccube(pasteDto.getFactProccube()); // Should be "FPROCY"
+        fact.setFactZonespe(pasteDto.getFactZonespe());
+        fact.setFactPartitiontype(pasteDto.getFactPartitiontype());
+
+
+        fact.setFactdbextrIdPk(pasteDto.getFactdbextrIdPk());
+        fact.setFactFactdatafiletype(pasteDto.getFactFactdatafiletype());
+        fact.setFactFactdatafilename(pasteDto.getFactFactdatafilename());
+        fact.setFactFactdatafilecheckunicity(pasteDto.getFactFactdatafilecheckunicity() != null ? pasteDto.getFactFactdatafilecheckunicity() : false); // explicit default for boolean
+        fact.setFactComments(pasteDto.getFactComments());
+
+
+        fact.setFactLastupdate(LocalDateTime.now());
+
+        return factRepository.save(fact);
+    }
+
     @Override
     @Transactional(readOnly = true)
     public Optional<Fact> getFactById(Integer factId) {
@@ -75,7 +130,7 @@ public class FactServiceImpl implements FactService {
         return factRepository.findAll();
     }
 
-    // Méthode updateFact modifiée pour prendre un DTO
+
     @Transactional
     public Fact updateFact(Integer factId, FactUpdateDTO dto) {
         Fact existingFact = factRepository.findById(factId)

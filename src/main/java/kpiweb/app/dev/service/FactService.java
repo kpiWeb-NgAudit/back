@@ -1,6 +1,7 @@
 package kpiweb.app.dev.service;
 
 import kpiweb.app.dev.dto.FactCreateDTO;
+import kpiweb.app.dev.dto.FactPasteCreateDTO;
 import kpiweb.app.dev.dto.FactUpdateDTO;
 import kpiweb.app.dev.entity.Fact;
 
@@ -9,6 +10,7 @@ import java.util.Optional;
 
  public interface FactService {
      Fact createFact(FactCreateDTO factCreateDTO);
+     Fact createFactFromPaste(FactPasteCreateDTO factPasteCreateDTO);
      Optional<Fact> getFactById(Integer factId);
      List<Fact> getAllFacts();
      Fact updateFact(Integer factId, FactUpdateDTO factUpdateDTO);

@@ -77,7 +77,7 @@ public class Customer {
     private String custRdlinterwidlen;
 
     @Column(name = "cube_identity" , nullable = false)
-    private String cubeIdentity; // <--- CHANGED FROM Integer to String
+    private String cubeIdentity;
 
     @Column(name = "cust_language", nullable = false)
     private String custLanguage;
@@ -157,12 +157,12 @@ public class Customer {
     @Column(name = "cube_comments", columnDefinition = "TEXT")
     private String cubeComments;
 
-    @Version // Annotation JPA pour le versioning/verrouillage optimiste
+    @Version
     @Column(name = "cust_timestamp",
-            nullable = false,       // La colonne DB ne sera jamais NULL
-            insertable = false,     // L'application ne doit PAS fournir de valeur à l'INSERT
-            updatable = false)      // L'application ne doit PAS fournir de valeur à l'UPDATE
-    private byte[] custTimestamp; // Type byte[] pour SQL Server rowversion
+            nullable = false,
+            insertable = false,
+            updatable = false)
+    private byte[] custTimestamp;
 
 
 
@@ -175,18 +175,14 @@ public class Customer {
 
     public void addFact(Fact fact) {
         facts.add(fact);
-        fact.setCustomer(this); // Assuming the second Fact entity mapping style
-        // If using the first Fact mapping style:
-        // fact.setCubeIdPkValue(this.cubeIdPk);
-        // fact.setCustomer(this);
+        fact.setCustomer(this);
+
     }
 
     public void removeFact(Fact fact) {
         facts.remove(fact);
-        fact.setCustomer(null); // Assuming the second Fact entity mapping style
-        // If using the first Fact mapping style:
-        // fact.setCubeIdPkValue(null);
-        // fact.setCustomer(null);
+        fact.setCustomer(null);
+
     }
 
 
